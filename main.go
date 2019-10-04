@@ -56,7 +56,7 @@ func main() {
 		return
 	}
 	// Close SDK
-	//defer fSetup.CloseSDK()
+	defer fSetup.CloseSDK()
 
 	// Installation and instantiation of the chaincode
 	err = ms.ChainCodeInstallationInstantiation()
