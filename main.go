@@ -22,10 +22,20 @@ func userInput(request string) (inputval string) {
 
 
 func main() {
-	
+
 	//take input values from the user
 	channelname := userInput("Enter the channel name: ")
 	fmt.Printf("Channel is named %s\n", channelname)
+
+	channelstatus := userInput("Press 1 to join an existing channel (new channel is created by default): ")
+	fmt.Printf("Choice recorded: %s\n", channelstatus)
+
+	chaincodename := userInput("Enter the chaincode name: ")
+	fmt.Printf("ChainCodeID is named %s\n", chaincodename)	
+
+	chaincodestatus :=  userInput("Press 1 to avoid installing a chaincode (new chaincode added by default): ")
+	fmt.Printf("Choice recorded: %s\n", chaincodestatus)
+	
 	// Definition of the Fabric SDK properties
 	ms := blockchainSDK.SetupSDK {
 		// Network parameters
@@ -37,32 +47,34 @@ func main() {
 		ChannelConfig: os.Getenv("GOPATH") + "/src/github.com/hyperledger/codesdk/first-network/channel-artifacts/channel.tx",
 
 		// Chaincode parameters
-		ChainCodeID:     "ourcode",
+		//ChainCodeID:     "ourcode",
+		ChainCodeID:     chaincodename,
 		ChaincodeGoPath: os.Getenv("GOPATH"),
 		ChaincodePath:   "github.com/hyperledger/codesdk/chaincode/chaincode_v1",
 		OrgAdmin:        "Admin",
 		OrgName:         "org1",
 		ConfigFile:      "config.yaml",//"first-network/connection-org1.yaml",
-		//ConfigFile:      "first-network/connection-org1.yaml",
 
 		// User parameters
 		UserName: "User1",
 	}
 
 	// Initialization of the SDK 
-	err := ms.Initialization()
+	err := ms.Initialization(channelstatus)
 	if err != nil {
 		fmt.Printf("SDK innitialization failed: %v\n", err)
 		return
 	}
 	// Close SDK
-	defer fSetup.CloseSDK()
+	defer ms.CloseSDK()
 
 	// Installation and instantiation of the chaincode
-	err = ms.ChainCodeInstallationInstantiation()
-	if err != nil {
-		fmt.Printf("Installation/Innitialization of SDK failed: %v\n", err)
-		return
+	if (chaincodestatus != "1") {
+		err = ms.ChainCodeInstallationInstantiation()
+		if err != nil {
+			fmt.Printf("Installation/Innitialization of SDK failed: %v\n", err)
+			return
+		}
 	}
 
 	// setup channel client and client registration
@@ -77,7 +89,7 @@ func main() {
 	looper := 0
 	for (looper<1) {
 		//select action
-		action := userInput("Enter which action to take (options are: invoke query delete searchbyowner) :")
+		action := userInput("Enter which action to take (options are: invoke query delete searchbyowner quit) :")
 		fmt.Printf("selected %s\n", action)
 		//select query
 		if (action  == "query"){
