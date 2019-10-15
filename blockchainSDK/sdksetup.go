@@ -61,7 +61,7 @@ func (s *SetupSDK) Initialization() error {
 		return errors.WithMessage(err, "failed to create channel management client from Admin identity")
 	}
 	s.mgmt = resMgmtClient
-	fmt.Println("Ressource management client created")
+	fmt.Println("Resource management client created")
 
 	// The MSP client allow us to retrieve user information from their identity, like its signing identity which we will need to save the channel
 	mspClient, err := mspclient.New(fsdk.Context(), mspclient.WithOrg(s.OrgName))

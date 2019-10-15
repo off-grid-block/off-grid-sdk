@@ -39,11 +39,15 @@ func (s *SetupSDK) InitEntrySDK(ID string, Hash string, Application string, Node
         var ccEvent *fab.CCEvent
         select {
         case ccEvent = <-notifier:
-                fmt.Printf("Received CC event: %v\n", ccEvent)
+                fmt.Printf("Received CC event Transaction ID: %s\n", ccEvent.TxID)
+                fmt.Printf("Received CC event ChaincodeID: %v\n", ccEvent.ChaincodeID)
+                fmt.Printf("Received CC event name: %v\n", ccEvent.EventName)
+                fmt.Printf("Received CC event payload: %x\n", ccEvent.Payload)
+                fmt.Printf("Received CC event block number in which the event was commited: %v\n", ccEvent.BlockNumber)
+                fmt.Printf("Received CC event URL of the peer: %v\n", ccEvent.SourceURL)
         case <-time.After(time.Second * 20):
                 return "", fmt.Errorf("did NOT receive CC event for eventId(%s)", eventID)
         }
-
         return string(response.Payload), nil
 }
 
