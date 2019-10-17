@@ -36,7 +36,7 @@ type SetupSDK struct {
 }
 
 // Initialization reads the configuration file, sets up the client, chaincode and event
-func (s *SetupSDK) Initialization() error {
+func (s *SetupSDK) Initialization(chanStatus string) error {
 
 	// Add parameters for the initialization
 	if s.initialized {
@@ -63,21 +63,24 @@ func (s *SetupSDK) Initialization() error {
 	s.mgmt = resMgmtClient
 	fmt.Println("Resource management client created")
 
-	// The MSP client allow us to retrieve user information from their identity, like its signing identity which we will need to save the channel
-	mspClient, err := mspclient.New(fsdk.Context(), mspclient.WithOrg(s.OrgName))
-	if err != nil {
-		return errors.WithMessage(err, "failed to create MSP client")
+	//check to see if create request was made 
+	if (chanStatus != "1") {
+		// The MSP client allow us to retrieve user information from their identity, like its signing identity which we will need to save the channel
+		mspClient, err := mspclient.New(fsdk.Context(), mspclient.WithOrg(s.OrgName))
+		if err != nil {
+			return errors.WithMessage(err, "failed to create MSP client")
+		}
+		mgmtIdentity, err := mspClient.GetSigningIdentity(s.OrgAdmin)
+		if err != nil {
+			return errors.WithMessage(err, "failed to get mgmt signing identity")
+		}
+		req := resmgmt.SaveChannelRequest{ChannelID: s.ChannelID, ChannelConfigPath: s.ChannelConfig, SigningIdentities: []msp.SigningIdentity{mgmtIdentity}}
+		txID, err := s.mgmt.SaveChannel(req, resmgmt.WithOrdererEndpoint(s.OrdererID))
+		if err != nil || txID.TransactionID == "" {
+			return errors.WithMessage(err, "failed to save channel")
+		}
+		fmt.Println("Channel created")
 	}
-	mgmtIdentity, err := mspClient.GetSigningIdentity(s.OrgAdmin)
-	if err != nil {
-		return errors.WithMessage(err, "failed to get mgmt signing identity")
-	}
-	req := resmgmt.SaveChannelRequest{ChannelID: s.ChannelID, ChannelConfigPath: s.ChannelConfig, SigningIdentities: []msp.SigningIdentity{mgmtIdentity}}
-	txID, err := s.mgmt.SaveChannel(req, resmgmt.WithOrdererEndpoint(s.OrdererID))
-	if err != nil || txID.TransactionID == "" {
-		return errors.WithMessage(err, "failed to save channel")
-	}
-	fmt.Println("Channel created")
 
 	// Make mgmt user join the previously created channel
 	if err = s.mgmt.JoinChannel(s.ChannelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(s.OrdererID)); err != nil {
@@ -87,6 +90,7 @@ func (s *SetupSDK) Initialization() error {
 
 	fmt.Println("Initialization Successful")
 	s.initialized = true
+
 	return nil
 }
 

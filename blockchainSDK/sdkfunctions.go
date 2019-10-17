@@ -9,18 +9,8 @@ import(
 
 // add entry using SDK
 func (s *SetupSDK) InitEntrySDK(ID string, Hash string, Application string, NodeIP string, Owner string, Updated string) (string, error) {
-
-        // Prepare arguments
-        var arguments []string
-        arguments = append(arguments, "initEntry")
-        arguments = append(arguments, ID)
-        arguments = append(arguments, Hash)
-        arguments = append(arguments, Application)
-        arguments = append(arguments, NodeIP)
-        arguments = append(arguments, Owner)
-        arguments = append(arguments, Updated)
-
-        eventID := "initEvent"
+        
+	eventID := "initEvent"
 
         // register chaincode event
         registered, notifier, err := s.event.RegisterChaincodeEvent(s.ChainCodeID, eventID)
@@ -30,24 +20,26 @@ func (s *SetupSDK) InitEntrySDK(ID string, Hash string, Application string, Node
         defer s.event.Unregister(registered)
 
         // Create a request for entry init and send it
-        response, err := s.client.Execute(channel.Request{ChaincodeID: s.ChainCodeID, Fcn: "initEntry", Args: [][]byte{[]byte(arguments[1]), []byte(arguments[2]), []byte(arguments[3]), []byte(arguments[4]), []byte(arguments[5]), []byte(arguments[6]) }})
+        response, err := s.client.Execute(channel.Request{ChaincodeID: s.ChainCodeID, Fcn: "initEntry", Args: [][]byte{[]byte(ID), []byte(Hash), []byte(Application), []byte(NodeIP), []byte(Owner), []byte(Updated) }})
         if err != nil {
-                return "", fmt.Errorf("failed to move funds: %v", err)
+                return "", fmt.Errorf("failed to innitiate: %v", err)
         }
 
         // Wait for the result of the submission
         var ccEvent *fab.CCEvent
         select {
         case ccEvent = <-notifier:
-                fmt.Printf("Received CC event Transaction ID: %s\n", ccEvent.TxID)
+		fmt.Printf("Received CC event Transaction ID: %s\n", ccEvent.TxID)
                 fmt.Printf("Received CC event ChaincodeID: %v\n", ccEvent.ChaincodeID)
                 fmt.Printf("Received CC event name: %v\n", ccEvent.EventName)
                 fmt.Printf("Received CC event payload: %x\n", ccEvent.Payload)
                 fmt.Printf("Received CC event block number in which the event was commited: %v\n", ccEvent.BlockNumber)
                 fmt.Printf("Received CC event URL of the peer: %v\n", ccEvent.SourceURL)
+                fmt.Printf("Received CC event: %v\n", ccEvent)
         case <-time.After(time.Second * 20):
                 return "", fmt.Errorf("did NOT receive CC event for eventId(%s)", eventID)
         }
+
         return string(response.Payload), nil
 }
 
@@ -67,7 +59,7 @@ func (s *SetupSDK) ReadEntrySDK(ID string) (string, error) {
 func (s *SetupSDK) DeleteEntrySDK(ID string) (string, error) {
 
 	//register event
-	eventID := "deleteevent"
+	eventID := "deleteEvent"
 	reg, notifier, err := s.event.RegisterChaincodeEvent(s.ChainCodeID, eventID)
 	if err != nil {
 		return "", err
