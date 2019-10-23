@@ -2,6 +2,7 @@ package blockchainSDK
 
 import (
 	"fmt"
+	"os"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/event"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
@@ -31,12 +32,13 @@ type SetupSDK struct {
 	UserName        string
 	client          *channel.Client
 	mgmt            *resmgmt.Client
-	fsdk             *fabsdk.FabricSDK
+	fsdk            *fabsdk.FabricSDK
 	event           *event.Client
+	MgmtIdentity	msp.SigningIdentity
 }
 
-// Initialization reads the configuration file, sets up the client, chaincode and event
-func (s *SetupSDK) Initialization(chanStatus string) error {
+// Initialization setups new sdk
+func (s *SetupSDK) Initialization() error {
 
 	// Add parameters for the initialization
 	if s.initialized {
@@ -63,24 +65,30 @@ func (s *SetupSDK) Initialization(chanStatus string) error {
 	s.mgmt = resMgmtClient
 	fmt.Println("Resource management client created")
 
-	//check to see if create request was made 
-	if (chanStatus != "1") {
-		// The MSP client allow us to retrieve user information from their identity, like its signing identity which we will need to save the channel
-		mspClient, err := mspclient.New(fsdk.Context(), mspclient.WithOrg(s.OrgName))
-		if err != nil {
-			return errors.WithMessage(err, "failed to create MSP client")
-		}
-		mgmtIdentity, err := mspClient.GetSigningIdentity(s.OrgAdmin)
-		if err != nil {
-			return errors.WithMessage(err, "failed to get mgmt signing identity")
-		}
-		req := resmgmt.SaveChannelRequest{ChannelID: s.ChannelID, ChannelConfigPath: s.ChannelConfig, SigningIdentities: []msp.SigningIdentity{mgmtIdentity}}
-		txID, err := s.mgmt.SaveChannel(req, resmgmt.WithOrdererEndpoint(s.OrdererID))
-		if err != nil || txID.TransactionID == "" {
-			return errors.WithMessage(err, "failed to save channel")
-		}
-		fmt.Println("Channel created")
+	// The MSP client allow us to retrieve user information from their identity, like its signing identity which we will need to save the channel
+	mspClient, err := mspclient.New(fsdk.Context(), mspclient.WithOrg(s.OrgName))
+	if err != nil {
+		return errors.WithMessage(err, "failed to create MSP client")
 	}
+
+	s.MgmtIdentity, err = mspClient.GetSigningIdentity(s.OrgAdmin)
+	if err != nil {
+		return errors.WithMessage(err, "failed to get mgmt signing identity")
+	}
+
+	return nil
+}
+
+func (s *SetupSDK) ChannelSetup() error {
+
+	s.ChannelConfig = os.Getenv("GOPATH") + "/src/github.com/hyperledger/codesdk/first-network/channel-artifacts/channel.tx"
+	req := resmgmt.SaveChannelRequest{ChannelID: s.ChannelID, ChannelConfigPath: s.ChannelConfig, SigningIdentities: []msp.SigningIdentity{s.MgmtIdentity}}
+	//create channel
+	txID, err := s.mgmt.SaveChannel(req, resmgmt.WithOrdererEndpoint(s.OrdererID))
+	if err != nil || txID.TransactionID == "" {
+		return errors.WithMessage(err, "failed to save channel")
+	}
+	fmt.Println("Channel created")
 
 	// Make mgmt user join the previously created channel
 	if err = s.mgmt.JoinChannel(s.ChannelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(s.OrdererID)); err != nil {
@@ -128,6 +136,7 @@ func (s *SetupSDK) ChainCodeInstallationInstantiation() error {
 	return nil
 }
 
+//setup client and setupt access to channel events
 func (s*SetupSDK)  ClientSetup() error {
 	// Channel client is used to Query or Execute transactions
 	var err error
