@@ -2,7 +2,6 @@ package blockchainSDK
 
 import (
 	"fmt"
-	"os"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/event"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
@@ -76,12 +75,15 @@ func (s *SetupSDK) Initialization() error {
 		return errors.WithMessage(err, "failed to get mgmt signing identity")
 	}
 
+	fmt.Println("Initialization Successful")
+	s.initialized = true
+
 	return nil
 }
 
 func (s *SetupSDK) ChannelSetup() error {
 
-	s.ChannelConfig = os.Getenv("GOPATH") + "/src/github.com/hyperledger/codesdk/first-network/channel-artifacts/channel.tx"
+//	s.ChannelConfig = os.Getenv("GOPATH") + "/src/github.com/hyperledger/codesdk/first-network/channel-artifacts/channel.tx"
 	req := resmgmt.SaveChannelRequest{ChannelID: s.ChannelID, ChannelConfigPath: s.ChannelConfig, SigningIdentities: []msp.SigningIdentity{s.MgmtIdentity}}
 	//create channel
 	txID, err := s.mgmt.SaveChannel(req, resmgmt.WithOrdererEndpoint(s.OrdererID))
@@ -95,9 +97,6 @@ func (s *SetupSDK) ChannelSetup() error {
 		return errors.WithMessage(err, "failed to make mgmt join channel")
 	}
 	fmt.Println("Channel joined")
-
-	fmt.Println("Initialization Successful")
-	s.initialized = true
 
 	return nil
 }
