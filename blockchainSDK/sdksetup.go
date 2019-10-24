@@ -52,11 +52,20 @@ func (s *SetupSDK) Initialization() error {
 	s.fsdk = fsdk
 	fmt.Println("SDK is now created")
 
+	fmt.Println("Initialization Successful")
+	s.initialized = true
+
+	return nil
+
+}
+
+func (s *SetupSDK) AdminSetup() error {
+
 	// The resource management client is responsible for managing channels (create/update channel)
 	resourceManagerClientContext := s.fsdk.Context(fabsdk.WithUser(s.OrgAdmin), fabsdk.WithOrg(s.OrgName))
-	if err != nil {
-		return errors.WithMessage(err, "failed to load Admin identity")
-	}
+//	if err != nil {
+//		return errors.WithMessage(err, "failed to load Admin identity")
+//	}
 	resMgmtClient, err := resmgmt.New(resourceManagerClientContext)
 	if err != nil {
 		return errors.WithMessage(err, "failed to create channel management client from Admin identity")
@@ -65,7 +74,7 @@ func (s *SetupSDK) Initialization() error {
 	fmt.Println("Resource management client created")
 
 	// The MSP client allow us to retrieve user information from their identity, like its signing identity which we will need to save the channel
-	mspClient, err := mspclient.New(fsdk.Context(), mspclient.WithOrg(s.OrgName))
+	mspClient, err := mspclient.New(s.fsdk.Context(), mspclient.WithOrg(s.OrgName))
 	if err != nil {
 		return errors.WithMessage(err, "failed to create MSP client")
 	}
@@ -74,9 +83,6 @@ func (s *SetupSDK) Initialization() error {
 	if err != nil {
 		return errors.WithMessage(err, "failed to get mgmt signing identity")
 	}
-
-	fmt.Println("Initialization Successful")
-	s.initialized = true
 
 	return nil
 }
@@ -104,8 +110,8 @@ func (s *SetupSDK) ChannelSetup() error {
 func (s *SetupSDK) ChainCodeInstallationInstantiation() error {
 
 	//verification prints:
-	fmt.Println(s.ChaincodePath)
-	fmt.Println(s.ChaincodeGoPath)
+//	fmt.Println(s.ChaincodePath)
+//	fmt.Println(s.ChaincodeGoPath)
 
 	// Create the chaincode package that will be sent to the peers
 	ccPackage, err := packager.NewCCPackage(s.ChaincodePath, s.ChaincodeGoPath)
@@ -120,7 +126,6 @@ func (s *SetupSDK) ChainCodeInstallationInstantiation() error {
 	if err != nil {
 		return errors.WithMessage(err, "failed to install chaincode")
 	}
-	fmt.Println(s.ChainCodeID)
 	fmt.Println("Chaincode installed")
 
 	// Set up chaincode policy
