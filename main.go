@@ -31,7 +31,7 @@ func main() {
 		//ChannelID: "mychannel",    
 		ChannelID: "",
 		ChannelConfig: "",
-	
+
 		// Chaincode parameters
 		ChainCodeID:     "",
 		//ChainCodeID:     chaincodename,
@@ -54,7 +54,7 @@ func main() {
 	}
 	// Close SDK
 	defer ms.CloseSDK()
-	
+
 
 	looper := 0
 	for (looper<1) {
@@ -63,24 +63,36 @@ func main() {
 		fmt.Printf("selected %s\n", action)
 		//select query
 		if (action  == "query"){
-			ID := userInput("Enter ID:") 
+			// setup channel client and client registration
+			err =ms.ClientSetup()
+			if err!= nil {
+				fmt.Printf("Channel client or Event client installation failed")
+				return
+			}
+			ID := userInput("Enter ID:")
 			response, err := ms.ReadEntrySDK(ID)
 			if err !=nil {
 				fmt.Printf("unable to query: %v\n", err)
 				//return
 			}
 			fmt.Printf("response is %s\n", response)
-		} 
+		}
 		//select invoke
 		if (action  == "invoke"){
 
-			ID 		:= userInput("Enter ID:")
-			Hash 		:= userInput("Enter Hash:")
-			Application 	:= userInput("Enter application name:")
-			NodeIP 		:= userInput("Enter node IP:")
-			Owner 		:= userInput("Enter Owner name:")
-			Updated 	:= userInput ("Enter update status (0/1)")
+			ID		:= userInput("Enter ID:")
+			Hash		:= userInput("Enter Hash:")
+			Application	:= userInput("Enter application name:")
+			NodeIP		:= userInput("Enter node IP:")
+			Owner		:= userInput("Enter Owner name:")
+			Updated		:= userInput("Enter update status (0/1)")
 
+			// setup channel client and client registration
+			err =ms.ClientSetup()
+			if err!= nil {
+				fmt.Printf("Channel client or Event client installation failed")
+				return
+			}
 			response, err := ms.InitEntrySDK(ID, Hash, Application, NodeIP, Owner, Updated)
 			if err !=nil {
 				fmt.Printf("unable to invoke: %v\n", err)
@@ -90,6 +102,12 @@ func main() {
 		}
 		//select delete
 		if (action == "delete"){
+			// setup channel client and client registration
+			err =ms.ClientSetup()
+			if err!= nil {
+				fmt.Printf("Channel client or Event client installation failed")
+				return
+			}
 			ID := userInput("Enter ID")
 			response, err := ms.DeleteEntrySDK(ID)
 			if err != nil {
@@ -100,7 +118,13 @@ func main() {
 
 		//select searchbyowner
 		if (action  == "searchbyowner"){
-			Owner := userInput("Enter Owner:") 
+			// setup channel client and client registration
+			err =ms.ClientSetup()
+			if err!= nil {
+				fmt.Printf("Channel client or Event client installation failed")
+				return
+			}
+			Owner := userInput("Enter Owner:")
 			response, err := ms.SearchByOwnerSDK(Owner)
 			if err !=nil {
 				fmt.Printf("unable to query: %v\n", err)
@@ -120,15 +144,6 @@ func main() {
 				fmt.Printf("Installation/Innitialization of chaincode: %v\n", err)
 				return
 			}
-
-
-			// setup channel client and client registration
-			err =ms.ClientSetup()
-			if err!= nil {
-				fmt.Printf("Channel client or Event client installation failed")
-				return
-			}
-
 		}
 
 		//add new channel
@@ -137,12 +152,11 @@ func main() {
 			ms.ChannelID = userInput("Enter the channel name: ")
 			fmt.Printf("ChannelID is named %s\n", ms.ChannelID)
 			// Installation and instantiation of the chaincode
-			err = ms.ChannelSetup() 
+			err = ms.ChannelSetup()
 			if err != nil {
 				fmt.Printf("Installation of channel failed %v\n", err)
 				return
 			}
-
 		}
 
 		//select to end
@@ -151,4 +165,4 @@ func main() {
 		}
 	}
 
-}	
+}

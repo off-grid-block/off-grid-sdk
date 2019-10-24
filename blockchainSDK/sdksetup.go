@@ -83,7 +83,6 @@ func (s *SetupSDK) Initialization() error {
 
 func (s *SetupSDK) ChannelSetup() error {
 
-//	s.ChannelConfig = os.Getenv("GOPATH") + "/src/github.com/hyperledger/codesdk/first-network/channel-artifacts/channel.tx"
 	req := resmgmt.SaveChannelRequest{ChannelID: s.ChannelID, ChannelConfigPath: s.ChannelConfig, SigningIdentities: []msp.SigningIdentity{s.MgmtIdentity}}
 	//create channel
 	txID, err := s.mgmt.SaveChannel(req, resmgmt.WithOrdererEndpoint(s.OrdererID))
@@ -153,7 +152,6 @@ func (s*SetupSDK)  ClientSetup() error {
 	}
 	fmt.Println("Event client created")
 
-	fmt.Println("Chaincode Installation & Instantiation Successful")
 	return nil
 }
 
