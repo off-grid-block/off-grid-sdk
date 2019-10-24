@@ -307,8 +307,8 @@ organizations:
 orderers:
   orderer.example.com:
     # [Optional] Default: Infer from hostname
-    #url: orderer.example.com:7050
-    url: localhost:7050
+    url: orderer.example.com:7050
+    #url: localhost:7050
 
     # these are standard properties defined by the gRPC library
     # they will be passed in as-is to gRPC client constructor
@@ -337,8 +337,8 @@ peers:
   peer0.org1.example.com:
     # this URL is used to send endorsement and query requests
     # [Optional] Default: Infer from hostname
-    #url: peer0.org1.example.com:7051
-    url: localhost:7051
+    url: peer0.org1.example.com:7051
+    #url: localhost:7051
 
     grpcOptions:
       ssl-target-name-override: peer0.org1.example.com
@@ -359,8 +359,8 @@ peers:
 
   peer1.org1.example.com:
     # this URL is used to send endorsement and query requests
-    #url: peer1.org1.example.com:7151
-    url: localhost:8051
+    url: peer1.org1.example.com:8051
+    #url: localhost:8051
 
     grpcOptions:
       ssl-target-name-override: peer1.org1.example.com
@@ -496,8 +496,8 @@ entityMatchers:
 #
   orderer:
     - pattern: (\w+).example.(\w+)
-      #urlSubstitutionExp: orderer.example.com:7050
-      urlSubstitutionExp: localhost:7050
+      urlSubstitutionExp: orderer.example.com:7050
+      #urlSubstitutionExp: localhost:7050
       sslTargetOverrideUrlSubstitutionExp: orderer.example.com
       mappedHost: orderer.example.com
 #
